@@ -6,4 +6,5 @@ services:
       - .env
     restart: unless-stopped
     volumes:
+      - ./data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock

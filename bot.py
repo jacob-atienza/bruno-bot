@@ -3,6 +3,7 @@ import asyncio
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+from services.pet_service import init_bruno_db
 
 load_dotenv()
 
@@ -21,6 +22,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 async def load_cogs():
     await bot.load_extension("cogs.basic")
     await bot.load_extension("cogs.homelab")
+    await bot.load_extension("cogs.pet")
 
 @bot.event
 async def on_ready():
@@ -40,6 +42,7 @@ async def on_ready():
         print(f"Failed to sync commands: {e}")
 
 async def main():
+    init_bruno_db()
     async with bot:
         await load_cogs()
         await bot.start(TOKEN)
