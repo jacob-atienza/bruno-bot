@@ -4,7 +4,7 @@ from discord.ext import commands
 from io import BytesIO
 
 from services.pet_service import pet_user, get_user_streak, get_pet_leaderboard
-from services.immich_service import get_random_bruno_image
+from services.immich_service import get_random_bruno_image_with_reason
 
 class Pet(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -14,7 +14,7 @@ class Pet(commands.Cog):
     @app_commands.command(name="pet", description="Pet Bruno and keep your daily streak.")
     async def pet(self, interaction: discord.Interaction):
         result = pet_user(interaction.user.id)
-        image_data = await get_random_bruno_image()
+        image_data, image_error = await get_random_bruno_image_with_reason()
         
         embed = discord.Embed(title="Pet Time")
         embed.description = result["message"]
@@ -38,7 +38,10 @@ class Pet(commands.Cog):
             await interaction.response.send_message(embed=embed, file=image_file)
             return
 
-        embed.set_footer(text="Bruno image unavailable right now. Try again soon.")
+        footer_message = "Bruno image unavailable right now."
+        if image_error:
+            footer_message = f"{footer_message} ({image_error})"
+        embed.set_footer(text=footer_message)
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="petstreak", description="See your current pet streak.")
