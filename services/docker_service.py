@@ -2,19 +2,22 @@
 """
 Provides Docker container listing utilities for the bot.
 """
-import subprocess
+import docker
 
 def list_docker_containers():
-    """Returns a list of running Docker containers (names and status)."""
+    """Returns a list of Docker containers (names and status)."""
     try:
-        result = subprocess.run([
-            "docker", "ps", "--format", "{{.Names}} ({{.Status}})"
-        ], capture_output=True, text=True, timeout=5)
-        if result.returncode != 0:
-            return "Docker not available or permission denied."
-        containers = result.stdout.strip().split("\n")
-        if not containers or containers == ['']:
-            return "No running containers."
-        return "\n".join(containers)
+        client = docker.from_env()
+        containers = client.containers.list(all=True)
+
+        if not containers:
+            return "No containers found."
+
+        lines = []
+        for c in containers:
+            lines.append(f"{c.name} ({c.status})")
+
+        return "\n".join(lines)
+
     except Exception as e:
         return f"Error retrieving Docker containers: {e}"

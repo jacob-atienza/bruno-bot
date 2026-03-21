@@ -1,0 +1,9 @@
+services:
+  bruno-bot:
+    build: .
+    container_name: bruno-bot
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
