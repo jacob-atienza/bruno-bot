@@ -17,7 +17,7 @@ class Pet(commands.Cog):
         embed.description = result["message"]
         embed.add_field(
             name="Current Streak",
-            value=f"{result["streak"]} day{"s" if result ["streak"] != 1 else ""}",
+            value=f'{result["streak"]} day{"s" if result ["streak"] != 1 else ""}',
             inline=False
         )
 
