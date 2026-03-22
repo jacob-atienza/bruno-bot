@@ -1,6 +1,7 @@
 import os
 import sqlite3
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from dotenv import load_dotenv
 
 # Created 3/21/2026
@@ -10,13 +11,25 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DB_PATH = os.getenv("DB_PATH")
+PET_TIMEZONE = os.getenv("PET_TIMEZONE", os.getenv("TZ", "America/Toronto"))
 
 if not DB_PATH:
     raise RuntimeError("DB_PATH is missing from .env")
 
+try:
+    PET_TIMEZONE_INFO = ZoneInfo(PET_TIMEZONE)
+except ZoneInfoNotFoundError as exc:
+    raise RuntimeError(
+        f"Invalid PET_TIMEZONE '{PET_TIMEZONE}'. Use an IANA timezone like 'America/Toronto'."
+    ) from exc
+
 # Returns a connection to the sqlite DB
 def get_connection():
     return sqlite3.connect(DB_PATH)
+
+
+def get_today_for_pet_streak() -> date:
+    return datetime.now(PET_TIMEZONE_INFO).date()
 
 # Initialize the DB and create the pet streaks table if it doesn't already exist
 def init_bruno_db():
@@ -36,7 +49,7 @@ def init_bruno_db():
 
 # The  logic for creating + continuing a daily pet streak
 def pet_user(user_id: int):
-    today = date.today()
+    today = get_today_for_pet_streak()
     yesterday = today - timedelta(days=1)
     user_id = str(user_id)
 
@@ -99,7 +112,7 @@ def get_user_streak(user_id: int):
 
     cursor.execute(
         "SELECT streak, last_pet_date FROM pet_streaks WHERE user_id = ?",
-        (str(user_id))
+        (str(user_id),)
     )
     row = cursor.fetchone()
     conn.close()
